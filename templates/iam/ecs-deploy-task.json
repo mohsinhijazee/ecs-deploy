@@ -47,6 +47,7 @@
         "cloudwatch:PutMetricAlarm",
         "cloudwatch:DescribeAlarms",
         "cloudwatch:DeleteAlarms",
+        "ssm:GetParametersByPath",
         "application-autoscaling:PutScalingPolicy",
         "application-autoscaling:RegisterScalableTarget",
         "application-autoscaling:DeregisterScalableTarget",
