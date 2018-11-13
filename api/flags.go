@@ -9,6 +9,7 @@ type Flags struct {
 	Region                string
 	ClusterName           string
 	Environment           string
+	AlbSubnets            string
 	AlbSecurityGroups     string
 	EcsSubnets            string
 	CloudwatchLogsPrefix  string

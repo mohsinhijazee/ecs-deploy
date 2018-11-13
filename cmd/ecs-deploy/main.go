@@ -44,6 +44,7 @@ func addFlags(f *api.Flags, fs *pflag.FlagSet) {
 	fs.StringVar(&f.Region, "region", f.Region, "AWS Region")
 	fs.StringVar(&f.ClusterName, "cluster-name", f.ClusterName, "name of the cluster")
 	fs.StringVar(&f.Environment, "environment", f.Environment, "environment (dev/test/staging/uat/prod)")
+	fs.StringVar(&f.AlbSubnets, "alb-subnets", f.AlbSubnets, "Subnets in which ALB to be launched. Defaults to ecs-subnets")
 	fs.StringVar(&f.AlbSecurityGroups, "alb-security-groups", f.AlbSecurityGroups, "security groups to attach to the Application Load Balancer")
 	fs.StringVar(&f.EcsSubnets, "ecs-subnets", f.EcsSubnets, "subnets to use for AWS ECS")
 	fs.StringVar(&f.CloudwatchLogsPrefix, "cloudwatch-logs-prefix", f.CloudwatchLogsPrefix, "prefix for cloudwatch logs (e.g. mycompany)")

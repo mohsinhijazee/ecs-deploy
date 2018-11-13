@@ -9,6 +9,7 @@ source .env
 
 make build && \
 ./ecs-deploy-linux-amd64 --bootstrap \
+  --alb-subnets $ALB_SUBNETS
   --alb-security-groups $ALB_SG \
   --cloudwatch-logs-enabled \
   --cloudwatch-logs-prefix $CLOUDWATCH_LOGS_PREFIX \

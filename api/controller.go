@@ -853,6 +853,7 @@ func (c *Controller) Resume() error {
 }
 
 func (c *Controller) Bootstrap(b *Flags) error {
+
 	var ecsDeploy = service.Deploy{
 		Cluster:               b.ClusterName,
 		ServiceName:           "ecs-deploy",
@@ -893,6 +894,13 @@ func (c *Controller) Bootstrap(b *Flags) error {
 	roleName := "ecs-" + b.ClusterName
 	instanceProfile := "ecs-" + b.ClusterName
 	deployPassword := util.RandStringBytesMaskImprSrc(8)
+
+	// Not sure if this is the right place to
+	// adjust and fallback to default configuration
+	if b.AlbSubnets == "" {
+		b.AlbSubnets = b.EcsSubnets
+		fmt.Printf("alb-subnets not given so falling back to ecs-subnets %v...\n", b.EcsSubnets)
+	}
 
 	// create dynamodb table
 	err := s.CreateTable()
@@ -1003,7 +1011,7 @@ func (c *Controller) Bootstrap(b *Flags) error {
 	var albs []*ecs.ALB
 	// create load balancer, default target, and listener
 	for _, v := range b.LoadBalancers {
-		alb, err := ecs.NewALBAndCreate(v.Name, v.IPAddressType, v.Scheme, strings.Split(b.AlbSecurityGroups, ","), strings.Split(b.EcsSubnets, ","), v.Type)
+		alb, err := ecs.NewALBAndCreate(v.Name, v.IPAddressType, v.Scheme, strings.Split(b.AlbSecurityGroups, ","), strings.Split(b.AlbSubnets, ","), v.Type)
 		if err != nil {
 			return err
 		}
