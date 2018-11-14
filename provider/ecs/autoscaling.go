@@ -1,6 +1,8 @@
 package ecs
 
 import (
+	"io/ioutil"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -98,6 +100,15 @@ func (a *AutoScaling) CreateLaunchConfiguration(clusterName string, keyName stri
 	if err != nil {
 		return err
 	}
+
+	r, err := ioutil.ReadFile("templates/ec2/user-data.txt")
+
+	if err != nil {
+		return err
+	}
+
+	userData := strings.Replace(string(r), "${CLUSTER_NAME}", clusterName, -1)
+
 	input := &autoscaling.CreateLaunchConfigurationInput{
 		IamInstanceProfile:      aws.String(instanceProfile),
 		ImageId:                 aws.String(amiId),
@@ -105,7 +116,7 @@ func (a *AutoScaling) CreateLaunchConfiguration(clusterName string, keyName stri
 		KeyName:                 aws.String(keyName),
 		LaunchConfigurationName: aws.String(clusterName),
 		SecurityGroups:          aws.StringSlice(securitygroups),
-		UserData:                aws.String(base64.StdEncoding.EncodeToString([]byte("#!/bin/bash\necho 'ECS_CLUSTER=" + clusterName + "'  > /etc/ecs/ecs.config\nstart ecs\n"))),
+		UserData:                aws.String(base64.StdEncoding.EncodeToString([]byte(userData))),
 	}
 	ecsLogger.Debugf("createLaunchConfiguration with: %+v", input)
 	_, err = svc.CreateLaunchConfiguration(input)
