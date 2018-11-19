@@ -8,8 +8,9 @@
             "name": "Launch Server",
             "type": "go",
             "request": "launch",
-            "mode": "debug",
-            "program": "${workspaceFolder}/cmd/ecs-deploy/main.go",
+            "mode": "auto",
+            "postDebugTask": "",
+            "program": "${workspaceFolder}/cmd/ecs-deploy/",
             "env": {
                 "URL_PREFIX": "/ecs-deploy",
                 "DEBUG": true,

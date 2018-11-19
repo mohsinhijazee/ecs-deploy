@@ -1,0 +1,66 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Delete Cluster",
+            "command": "go",
+            "args": [
+                "run",
+                "${workspaceFolder}/cmd/ecs-deploy/main.go",
+                "--delete-cluster", "ekomi-experimental",
+                "--profile", "stage",
+                "--region", "eu-central-1",
+                "--environment", "stage",
+                "--cloudwatch-logs-prefix", "ekomi-experiment"
+            ],
+            "options": {
+                "env": {
+                    "DEBUG": "true"
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Bootstrap Cluster",
+            "type": "shell",
+            "problemMatcher": [],
+            "command": "go",
+            "options": {
+                "env": {
+                    "DEBUG": "true"
+                }
+            },
+            "args": [
+                "run",
+                "${workspaceFolder}/cmd/ecs-deploy/main.go",
+                "--bootstrap",
+                "--cluster-name", "ekomi-experimental",
+                "--environment", "stage",
+                "--profile", "stage",
+                "--region", "eu-central-1",
+                "--instance-type", "t2.medium",
+                "--key-name", "mshafique-key",
+                "--cloudwatch-logs-enabled", "true",
+                "--cloudwatch-logs-prefix", "ekomi-experiment",
+                "--ecs-min-size", "1",
+                "--ecs-desired-size", "2",
+                "--ecs-max-size", "3",
+                "--ecs-subnets", "subnet-0ac83ead513acff1a",
+                "--ecs-security-groups", "sg-0c49ce93ebc971aa4,sg-0653a1b94c0e7bc10",
+                "--alb-subnets", "subnet-0d2b7dc0c7cf99341,subnet-0d92668cd94d5c027",
+                "--alb-security-groups", "sg-001e2b8f6844d38a6",
+                "--paramstore-enabled", "true",
+                "--paramstore-kms-arn", "arn:aws:kms:eu-central-1:849437835284:key/6e071926-a650-4f82-bc4c-3c2f033f1f8d",
+                "--paramstore-prefix", "ekomi"
+            ]
+        }
+    ]
+}
