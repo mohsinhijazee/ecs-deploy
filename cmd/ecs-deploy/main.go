@@ -16,6 +16,8 @@ func startup_checks() {
 		"AWS_REGION",
 		"JWT_SECRET",
 		"DEPLOY_PASSWORD",
+		"ALB_SUBNETS",
+		"ALB_SECURITY_GROUPS",
 	}
 	paramstore := ecs.Paramstore{}
 	err := paramstore.RetrieveKeys()
@@ -92,6 +94,15 @@ func main() {
 	if flags.Profile != "" {
 		os.Setenv("AWS_REGION", flags.Region)
 	}
+
+	if flags.AlbSubnets != "" {
+		os.Setenv("ALB_SUBNETS", flags.AlbSubnets)
+	}
+
+	if flags.AlbSecurityGroups != "" {
+		os.Setenv("ALB_SECURITY_GROUPS", flags.AlbSecurityGroups)
+	}
+
 	if flags.Bootstrap {
 		if ok, _ := util.AskForConfirmation("Bootstrap ECS Cluster?"); ok {
 			controller := api.Controller{}
