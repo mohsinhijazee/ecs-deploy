@@ -291,20 +291,16 @@ func (c *Controller) redeploy(serviceName, time string) (*service.DeployResult, 
 	return ret, nil
 }
 
-// service not found, create ALB target group + rule
-func (c *Controller) createService(serviceName string, d service.Deploy, taskDefArn *string) error {
-	iam := ecs.IAM{}
-	var targetGroupArn *string
-	var listeners []string
+func (c *Controller) createPathBasedLoadBalencer(serviceName string, d service.Deploy) (listeners []string, targetGroupArn *string, err error) {
 	var alb *ecs.ALB
-	var err error
+
 	if d.LoadBalancer != "" {
 		alb, err = ecs.NewALB(d.LoadBalancer)
 	} else {
 		alb, err = ecs.NewALB(d.Cluster)
 	}
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	// create target group
@@ -313,21 +309,37 @@ func (c *Controller) createService(serviceName string, d service.Deploy, taskDef
 		controllerLogger.Debugf("Creating target group for service: %v", serviceName)
 		targetGroupArn, err = alb.CreateTargetGroup(serviceName, d)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 		// modify target group attributes
 		if d.DeregistrationDelay != -1 || d.Stickiness.Enabled {
 			err = alb.ModifyTargetGroupAttributes(*targetGroupArn, d)
 			if err != nil {
-				return err
+				return nil, nil, err
 			}
 		}
 
 		// deploy rules for target group
 		listeners, err = c.createRulesForTarget(serviceName, d, targetGroupArn, alb)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
+	}
+	return listeners, targetGroupArn, nil
+
+}
+
+// service not found, create ALB target group + rule
+func (c *Controller) createService(serviceName string, d service.Deploy, taskDefArn *string) error {
+	iam := ecs.IAM{}
+	var targetGroupArn *string
+	var listeners []string
+	var err error
+
+	listeners, targetGroupArn, err = c.createPathBasedLoadBalencer(serviceName, d)
+
+	if err != nil {
+		return err
 	}
 
 	// check whether ecs-service-role exists
