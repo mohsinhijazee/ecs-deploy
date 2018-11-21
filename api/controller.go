@@ -329,6 +329,47 @@ func (c *Controller) createPathBasedLoadBalencer(serviceName string, d service.D
 
 }
 
+func (c *Controller) createPerServiceLoadBalancer(serviceName string, d service.Deploy) (listeners []string, targetGroupArn *string, err error) {
+	loadBalancerName := "ecs-" + serviceName
+	albSubnets := strings.Split(util.GetEnv("ALB_SUBNETS", ""), ",")
+	albSecurityGroups := strings.Split(util.GetEnv("ALB_SECURITY_GROUPS", ""), ",")
+	var alb *ecs.ALB
+
+	alb, err = ecs.NewALBAndCreate(
+		loadBalancerName,
+		"ipv4",
+		"internet-facing",
+		albSecurityGroups,
+		albSubnets,
+		"application")
+
+	if err != nil {
+		controllerLogger.Errorf("Failed to create new ALb for %v", serviceName)
+		return nil, nil, nil
+	}
+
+	targetGroupArn, err = alb.CreateTargetGroup(loadBalancerName, d)
+
+	if err != nil {
+		controllerLogger.Errorf("Failed to create target group for %v", serviceName)
+		return nil, nil, nil
+	}
+
+	err = alb.CreateListener("HTTP", 80, *targetGroupArn)
+
+	if err != nil {
+		controllerLogger.Errorf("Failed to create listener for ALB %v for service %v", alb.DnsName, serviceName)
+		return nil, nil, nil
+	}
+
+	for _, listener := range alb.Listeners {
+		listeners = append(listeners, *listener.ListenerArn)
+	}
+
+	return
+
+}
+
 // service not found, create ALB target group + rule
 func (c *Controller) createService(serviceName string, d service.Deploy, taskDefArn *string) error {
 	iam := ecs.IAM{}
@@ -336,9 +377,16 @@ func (c *Controller) createService(serviceName string, d service.Deploy, taskDef
 	var listeners []string
 	var err error
 
-	listeners, targetGroupArn, err = c.createPathBasedLoadBalencer(serviceName, d)
+	if d.LoadBalancer == "__new__" {
+		controllerLogger.Infof("Going to create new load balancer for service %v", serviceName)
+		listeners, targetGroupArn, err = c.createPerServiceLoadBalancer(serviceName, d)
+	} else {
+		controllerLogger.Infof("Path will be added for service %v to existing load balancer", serviceName)
+		listeners, targetGroupArn, err = c.createPathBasedLoadBalencer(serviceName, d)
+	}
 
 	if err != nil {
+		controllerLogger.Errorf("Failed to create load balancer for %v", serviceName)
 		return err
 	}
 
